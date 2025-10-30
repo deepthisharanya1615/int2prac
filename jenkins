@@ -1,0 +1,41 @@
+pipeline {
+    agent none  
+
+    stages {
+
+        stage('Run on Controller') {
+            agent { label 'built-in' }   
+            steps {
+                echo "Running on: ${env.NODE_NAME}"
+            }
+        }
+
+        stage('Run on Windows Agent') {
+            agent { label 'intprac' }
+            steps {
+                bat """
+                    echo Running on Windows Agent
+                    javac -d out HelloWorld.java
+                    java -cp out HelloWorld
+                """
+            }
+        }
+
+        stage('Run in Parallel') {
+            parallel {
+                stage('Controller') {
+                    agent { label 'built-in' }
+                    steps {
+                        echo "Parallel on Controller: ${env.NODE_NAME}"
+                    }
+                }
+                stage('Windows Agent') {
+                    agent { label 'intprac' }
+                    steps {
+                        bat "echo Parallel on Windows Agent: %NODE_NAME%"
+                    }
+                }
+            }
+        }
+    }
+}
